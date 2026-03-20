@@ -42,6 +42,7 @@ This project converts the notebook workflow in `isl1.ipynb` into a deployable re
 - If Streamlit Cloud shows `ImportError: libGL.so.1`, ensure `packages.txt` is present in repo root (this project includes it).
 - On newer Debian images (e.g., trixie), use `libglib2.0-0t64` instead of `libglib2.0-0`.
 - `mediapipe` is pinned in `requirements.txt` for compatibility, and the app includes a fallback import path if `mp.solutions` is not exposed.
+- `numpy` is pinned to `1.26.4` to avoid ABI issues with TensorFlow/MediaPipe wheels on cloud runtimes.
 - You can pass ICE server config through an env var:
   - `ICE_SERVERS_JSON` as JSON array, e.g.
 
