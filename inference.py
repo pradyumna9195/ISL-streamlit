@@ -23,7 +23,18 @@ class InferenceState:
     def update_threshold(self, threshold: float):
         self.threshold = float(threshold)
 
-    def process(self, model, keypoints: np.ndarray):
+    def process(self, model, keypoints: np.ndarray, has_gesture: bool = True):
+        if not has_gesture:
+            self.sequence.clear()
+            self.predictions.clear()
+            return {
+                "ready": False,
+                "confidence": 0.0,
+                "action": None,
+                "sentence": self.sentence,
+                "probabilities": None,
+            }
+
         self.sequence.append(keypoints)
         self.sequence = self.sequence[-self.sequence_length :]
 

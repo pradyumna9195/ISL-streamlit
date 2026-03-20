@@ -4,6 +4,7 @@ import threading
 from pathlib import Path
 
 import av
+import numpy as np
 import streamlit as st
 from streamlit_webrtc import VideoProcessorBase, WebRtcMode, webrtc_streamer
 
@@ -40,6 +41,7 @@ class ISLVideoProcessor(VideoProcessorBase):
         self.lock = threading.Lock()
         self.latest_action = None
         self.latest_confidence = 0.0
+        self.latest_probabilities = np.zeros(len(ACTIONS), dtype=np.float32)
         self.last_error = None
         self.holistic = mp_holistic.Holistic(
             min_detection_confidence=0.5,
@@ -55,6 +57,7 @@ class ISLVideoProcessor(VideoProcessorBase):
             self.state.reset()
             self.latest_action = None
             self.latest_confidence = 0.0
+            self.latest_probabilities = np.zeros(len(ACTIONS), dtype=np.float32)
 
     def recv(self, frame):
         image = frame.to_ndarray(format="bgr24")
@@ -62,18 +65,24 @@ class ISLVideoProcessor(VideoProcessorBase):
             image, results = mediapipe_detection(image, self.holistic)
             draw_styled_landmarks(image, results)
             keypoints = extract_keypoints(results)
+            has_gesture = bool(results.left_hand_landmarks or results.right_hand_landmarks)
 
             with self.lock:
-                output = self.state.process(self.model, keypoints)
+                output = self.state.process(self.model, keypoints, has_gesture=has_gesture)
                 if output["action"] is not None:
                     self.latest_action = output["action"]
+                else:
+                    self.latest_action = None
                 self.latest_confidence = output["confidence"]
 
                 probabilities = output["probabilities"]
                 sentence = output["sentence"]
+                if probabilities is not None:
+                    self.latest_probabilities = probabilities
+                else:
+                    self.latest_probabilities = np.zeros(len(ACTIONS), dtype=np.float32)
 
-            if probabilities is not None:
-                image = prob_viz(probabilities, ACTIONS, image, PROB_COLORS)
+            image = prob_viz(self.latest_probabilities, ACTIONS, image, PROB_COLORS)
             image = draw_sentence_banner(image, sentence)
 
         except Exception as exc:
