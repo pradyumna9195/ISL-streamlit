@@ -1,7 +1,9 @@
+import json
 from dataclasses import dataclass, field
 
+import h5py
 import numpy as np
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model, model_from_json
 
 
 @dataclass
@@ -72,4 +74,44 @@ class InferenceState:
 
 
 def load_trained_model(model_path):
-    return load_model(model_path)
+    try:
+        return load_model(model_path, compile=False)
+    except Exception as original_error:
+        try:
+            with h5py.File(model_path, "r") as h5_file:
+                raw_model_config = h5_file.attrs.get("model_config")
+                if raw_model_config is None:
+                    raise ValueError("Missing model_config in H5 file.")
+
+                if isinstance(raw_model_config, bytes):
+                    raw_model_config = raw_model_config.decode("utf-8")
+
+                model_config = json.loads(raw_model_config)
+
+            def _normalize_input_layer_config(obj):
+                if isinstance(obj, dict):
+                    normalized = {}
+                    for key, value in obj.items():
+                        normalized[key] = _normalize_input_layer_config(value)
+
+                    class_name = normalized.get("class_name")
+                    config = normalized.get("config")
+                    if class_name == "InputLayer" and isinstance(config, dict):
+                        if "batch_shape" in config and "batch_input_shape" not in config:
+                            config["batch_input_shape"] = config.pop("batch_shape")
+                    return normalized
+
+                if isinstance(obj, list):
+                    return [_normalize_input_layer_config(item) for item in obj]
+
+                return obj
+
+            normalized_config = _normalize_input_layer_config(model_config)
+            model = model_from_json(json.dumps(normalized_config))
+            model.load_weights(model_path)
+            return model
+        except Exception as fallback_error:
+            raise RuntimeError(
+                f"Failed to load model using default and legacy fallback loaders. "
+                f"Default error: {original_error}. Fallback error: {fallback_error}"
+            ) from fallback_error
