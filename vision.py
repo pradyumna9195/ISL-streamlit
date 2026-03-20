@@ -3,8 +3,14 @@ import mediapipe as mp
 import numpy as np
 
 
-mp_holistic = mp.solutions.holistic
-mp_drawing = mp.solutions.drawing_utils
+try:
+    mp_holistic = mp.solutions.holistic
+    mp_drawing = mp.solutions.drawing_utils
+except AttributeError:
+    from mediapipe.python.solutions import drawing_utils, holistic
+
+    mp_holistic = holistic
+    mp_drawing = drawing_utils
 
 
 def mediapipe_detection(image, model):
