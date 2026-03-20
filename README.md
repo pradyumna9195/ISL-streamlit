@@ -40,6 +40,7 @@ This project converts the notebook workflow in `isl1.ipynb` into a deployable re
 - Use HTTPS for browser camera support.
 - For reliable remote WebRTC, configure STUN/TURN servers.
 - If Streamlit Cloud shows `ImportError: libGL.so.1`, ensure `packages.txt` is present in repo root (this project includes it).
+- On newer Debian images (e.g., trixie), use `libglib2.0-0t64` instead of `libglib2.0-0`.
 - You can pass ICE server config through an env var:
   - `ICE_SERVERS_JSON` as JSON array, e.g.
 
