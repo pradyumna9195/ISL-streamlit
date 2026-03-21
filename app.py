@@ -128,6 +128,22 @@ def main():
         [data-testid="stSidebar"] {
             background: #f3f8ff;
         }
+        [data-testid="stHeader"] {
+            background: #f8fbff;
+        }
+        h1, h2, h3 {
+            color: #0f355e !important;
+        }
+        [data-testid="stCaptionContainer"] p,
+        [data-testid="stMarkdownContainer"] p,
+        [data-testid="stMarkdownContainer"] li,
+        [data-testid="stMetricLabel"],
+        [data-testid="stMetricValue"] {
+            color: #1f3b57 !important;
+        }
+        label, .stSlider label, .stSlider span {
+            color: #234867 !important;
+        }
         [data-testid="stSlider"] [role="slider"] {
             background-color: #0f6cbd;
             border-color: #0f6cbd;
@@ -155,16 +171,6 @@ def main():
             color: #0b5ca3;
             background: #e3f1ff;
         }
-        .hospital-chip {
-            display: inline-block;
-            background: #e9f6ef;
-            color: #0d6838;
-            border: 1px solid #b9e2c8;
-            border-radius: 999px;
-            padding: 0.2rem 0.7rem;
-            font-size: 0.85rem;
-            margin-bottom: 0.35rem;
-        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -179,8 +185,6 @@ def main():
     except Exception as exc:
         st.error(f"Failed to load model: {exc}")
         st.stop()
-
-    st.markdown('<span class="hospital-chip">Hospital-ready light theme</span>', unsafe_allow_html=True)
 
     threshold = st.slider(
         "Confidence threshold",
