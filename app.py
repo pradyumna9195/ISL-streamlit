@@ -117,8 +117,6 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    st.title("ISL Real-Time Recognition")
-    st.caption("Streamlit + WebRTC + MediaPipe + LSTM inference")
     st.markdown(
         """
         <style>
@@ -130,6 +128,51 @@ def main():
         }
         [data-testid="stHeader"] {
             background: #f8fbff;
+        }
+        [data-testid="stToolbar"] {
+            right: 1rem;
+        }
+        .hospital-hero {
+            background: linear-gradient(120deg, #0f6cbd 0%, #1f8f7a 100%);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 0.9rem;
+            box-shadow: 0 8px 24px rgba(16, 70, 112, 0.12);
+        }
+        .hospital-hero h1 {
+            color: #ffffff !important;
+            margin: 0;
+            font-size: 1.55rem;
+            letter-spacing: 0.2px;
+        }
+        .hospital-hero p {
+            color: #eaf6ff !important;
+            margin-top: 0.35rem;
+            margin-bottom: 0;
+            font-size: 0.96rem;
+        }
+        .hospital-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.6rem;
+            margin-bottom: 0.85rem;
+        }
+        .hospital-meta-card {
+            background: #ffffff;
+            border: 1px solid #d6e6f7;
+            border-radius: 12px;
+            padding: 0.55rem 0.8rem;
+        }
+        .hospital-meta-card .k {
+            color: #376383;
+            font-size: 0.76rem;
+            margin-bottom: 0.16rem;
+        }
+        .hospital-meta-card .v {
+            color: #0f355e;
+            font-size: 0.92rem;
+            font-weight: 600;
+            line-height: 1.3;
         }
         h1, h2, h3 {
             color: #0f355e !important;
@@ -151,6 +194,35 @@ def main():
         [data-testid="stSlider"] div[data-baseweb="slider"] > div > div {
             background: #d6e9ff;
         }
+        .controls-card {
+            background: #ffffff;
+            border: 1px solid #d6e6f7;
+            border-radius: 14px;
+            padding: 0.85rem 1rem 0.95rem 1rem;
+            margin-bottom: 0.9rem;
+        }
+        .controls-title {
+            color: #0f4a77;
+            font-size: 0.86rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.2rem;
+        }
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.4rem;
+        }
+        .action-pill {
+            border: 1px solid #c7dff4;
+            color: #1f4e72;
+            background: #f3f9ff;
+            border-radius: 999px;
+            padding: 0.16rem 0.58rem;
+            font-size: 0.78rem;
+        }
         [data-testid="metric-container"] {
             background: #f7fbff;
             border: 1px solid #d8e7f7;
@@ -171,7 +243,39 @@ def main():
             color: #0b5ca3;
             background: #e3f1ff;
         }
+        .prediction-panel-title {
+            color: #0f4a77;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
         </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="hospital-hero">
+            <h1>🏥 ISL Clinical Communication Console</h1>
+            <p>Real-time Indian Sign Language interpretation support for healthcare environments.</p>
+        </div>
+        <div class="hospital-meta">
+            <div class="hospital-meta-card">
+                <div class="k">Deployment Focus</div>
+                <div class="v">Healthcare & Clinical Desk</div>
+            </div>
+            <div class="hospital-meta-card">
+                <div class="k">Inference Mode</div>
+                <div class="v">Live Video + LSTM Sequence</div>
+            </div>
+            <div class="hospital-meta-card">
+                <div class="k">Current Theme</div>
+                <div class="v">Hospital Light Interface</div>
+            </div>
+        </div>
         """,
         unsafe_allow_html=True,
     )
@@ -186,6 +290,7 @@ def main():
         st.error(f"Failed to load model: {exc}")
         st.stop()
 
+    st.markdown('<div class="controls-card"><div class="controls-title">Detection Controls</div>', unsafe_allow_html=True)
     threshold = st.slider(
         "Confidence threshold",
         min_value=0.1,
@@ -194,8 +299,14 @@ def main():
         step=0.05,
     )
 
+    action_pills = "".join([f'<span class="action-pill">{action}</span>' for action in ACTIONS.tolist()])
     st.markdown(
-        f"**Supported actions:** {', '.join(ACTIONS.tolist())}",
+        f"""
+        <div class="controls-title" style="margin-top:0.35rem;">Supported actions</div>
+        <div class="actions-row">{action_pills}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     rtc_config = get_rtc_configuration()
@@ -211,6 +322,7 @@ def main():
     left, right = st.columns([2, 1])
     with right:
         with st.container(border=True):
+            st.markdown('<div class="prediction-panel-title">Inference Snapshot</div>', unsafe_allow_html=True)
             st.subheader("Live prediction")
             reset_clicked = st.button("Reset sentence", use_container_width=True)
 
