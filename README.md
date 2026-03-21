@@ -43,6 +43,7 @@ This project converts the notebook workflow in `isl1.ipynb` into a deployable re
 - On newer Debian images (e.g., trixie), use `libglib2.0-0t64` instead of `libglib2.0-0`.
 - `mediapipe` is pinned in `requirements.txt` for compatibility, and the app includes a fallback import path if `mp.solutions` is not exposed.
 - `numpy` is pinned to `1.26.4` to avoid ABI issues with TensorFlow/MediaPipe wheels on cloud runtimes.
+- `tensorflow` is pinned to `2.16.2` for better compatibility with legacy `.h5` model deserialization used in this project.
 - You can pass ICE server config through an env var:
   - `ICE_SERVERS_JSON` as JSON array, e.g.
 
