@@ -112,9 +112,63 @@ def get_rtc_configuration():
 
 
 def main():
-    st.set_page_config(page_title="ISL Real-Time Recognition", layout="wide")
+    st.set_page_config(
+        page_title="ISL Real-Time Recognition",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
     st.title("ISL Real-Time Recognition")
     st.caption("Streamlit + WebRTC + MediaPipe + LSTM inference")
+    st.markdown(
+        """
+        <style>
+        [data-testid="stAppViewContainer"] {
+            background: #f8fbff;
+        }
+        [data-testid="stSidebar"] {
+            background: #f3f8ff;
+        }
+        [data-testid="stSlider"] [role="slider"] {
+            background-color: #0f6cbd;
+            border-color: #0f6cbd;
+        }
+        [data-testid="stSlider"] div[data-baseweb="slider"] > div > div {
+            background: #d6e9ff;
+        }
+        [data-testid="metric-container"] {
+            background: #f7fbff;
+            border: 1px solid #d8e7f7;
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+        }
+        [data-testid="stAlert"] {
+            border-radius: 8px;
+        }
+        .stButton > button {
+            border: 1px solid #0f6cbd;
+            color: #0f6cbd;
+            background: #eef6ff;
+            border-radius: 8px;
+        }
+        .stButton > button:hover {
+            border-color: #0b5ca3;
+            color: #0b5ca3;
+            background: #e3f1ff;
+        }
+        .hospital-chip {
+            display: inline-block;
+            background: #e9f6ef;
+            color: #0d6838;
+            border: 1px solid #b9e2c8;
+            border-radius: 999px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.35rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if not Path(MODEL_PATH).exists():
         st.error(f"Model file not found: {MODEL_PATH}")
@@ -126,6 +180,8 @@ def main():
         st.error(f"Failed to load model: {exc}")
         st.stop()
 
+    st.markdown('<span class="hospital-chip">Hospital-ready light theme</span>', unsafe_allow_html=True)
+
     threshold = st.slider(
         "Confidence threshold",
         min_value=0.1,
@@ -134,7 +190,9 @@ def main():
         step=0.05,
     )
 
-    st.write("Actions:", ", ".join(ACTIONS.tolist()))
+    st.markdown(
+        f"**Supported actions:** {', '.join(ACTIONS.tolist())}",
+    )
 
     rtc_config = get_rtc_configuration()
     webrtc_ctx = webrtc_streamer(
@@ -148,23 +206,24 @@ def main():
 
     left, right = st.columns([2, 1])
     with right:
-        st.subheader("Live prediction")
-        reset_clicked = st.button("Reset sentence")
+        with st.container(border=True):
+            st.subheader("Live prediction")
+            reset_clicked = st.button("Reset sentence", use_container_width=True)
 
-        if webrtc_ctx.video_processor:
-            processor = webrtc_ctx.video_processor
-            processor.set_threshold(threshold)
-            if reset_clicked:
-                processor.reset()
+            if webrtc_ctx.video_processor:
+                processor = webrtc_ctx.video_processor
+                processor.set_threshold(threshold)
+                if reset_clicked:
+                    processor.reset()
 
-            st.metric("Current action", processor.latest_action or "-")
-            st.metric("Confidence", f"{processor.latest_confidence:.2f}")
-            st.write("Sentence:", " ".join(processor.state.sentence) or "-")
+                st.metric("Current action", processor.latest_action or "-")
+                st.metric("Confidence", f"{processor.latest_confidence:.2f}")
+                st.write("Sentence:", " ".join(processor.state.sentence) or "-")
 
-            if processor.last_error:
-                st.warning(f"Processing warning: {processor.last_error}")
-        else:
-            st.info("Start the camera to begin real-time inference.")
+                if processor.last_error:
+                    st.warning(f"Processing warning: {processor.last_error}")
+            else:
+                st.info("Start the camera to begin real-time inference.")
 
     with left:
         st.subheader("Camera stream")
